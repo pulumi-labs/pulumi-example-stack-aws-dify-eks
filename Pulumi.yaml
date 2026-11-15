@@ -1,0 +1,3 @@
+name: dify-private-eks-python
+description: Private independently scalable Dify Community document workflows on existing EKS
+runtime: python

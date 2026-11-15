@@ -1,0 +1,44 @@
+{
+  "dify_commit": "8e689e868b63b6dd2b449d0eb568ca5cc7127759",
+  "dify_version": "1.19.0",
+  "rds_engine": "15.18",
+  "rds_ca_sha256": "d46e1bdfda05c8e7644e50930806a19b139a222542bf0348082fb59ece2b5fa5",
+  "agent_runtime_identity": {
+    "uid": 1000,
+    "gid": 1000,
+    "config_digest": "sha256:cf833286a14913d027d800d2095382c39b5814e7edcd63533c746be8df68c23b"
+  },
+  "plugin_runtime_identity": {
+    "uid": 1001,
+    "gid": 1001,
+    "config_digest": "sha256:174c62a6d02da89dea749d9a10275cfb64602551f5fffdead19653826f15c9ee"
+  },
+  "images": {
+    "api": "docker.io/langgenius/dify-api@sha256:9ba04a262dded58dd0237857aefae3f70a6796588fff7a2b1ff0b0eaa91a2949",
+    "web": "docker.io/langgenius/dify-web@sha256:6b3f4f47a85d74865983163438661dc4f9d01bd4aeb93fdecae81225eab77f23",
+    "plugin": "docker.io/langgenius/dify-plugin-daemon@sha256:1fb555e231e318c9fb25f9eb67d301ecbb247e1e8835ba7b1827a23d405af448",
+    "sandbox": "docker.io/langgenius/dify-sandbox@sha256:942acde5b90350498f71c9f89fe1c0a578578c51521d6683783e073528b6a26a",
+    "agent": "docker.io/langgenius/dify-agent-backend@sha256:cb77b3841acced310d3f242998ecef41751fe34d3c9c90689d7628130d1cf14e",
+    "local-sandbox": "docker.io/langgenius/dify-agent-local-sandbox@sha256:8b3a355f18b9660fdc9a709f7368370f01cb02c800e234b659f1803b3368900e",
+    "weaviate": "cr.weaviate.io/semitechnologies/weaviate@sha256:4969332436bfc573d96e96bd79ec7ad07136de7c2102fbedfa9ac6dae2797b0c",
+    "redis": "docker.io/library/redis@sha256:5e6071fb51f97ba92d40bb67d6aa46751e086d852a4c78df7e6df4e026b70883",
+    "db-init": "docker.io/library/postgres@sha256:f6498f214984ab10ad90d839204a19effa2ad3aff15fbacd12e43cd8b527c5e5",
+    "nginx": "docker.io/library/nginx@sha256:09ab424a8c788f8d0fe3a64429f6d19dfa526885c8609b748d0943a75dcb9f8c",
+    "proxy": "docker.io/ubuntu/squid@sha256:94f844158e12b52f51b4ae996515e37e8fb3e8d85e1c86caba1a297376e4ec4f"
+  },
+  "platform_images": {
+    "operator": "docker.io/tailscale/k8s-operator@sha256:48d373932bae9b65f5ded6480276b2290f16b8d43794ec9dcc3faf50137802eb",
+    "proxy": "docker.io/tailscale/tailscale@sha256:519bf6f2c386992052216ea7e9391d5ace3a859d458f4f61bc8db8c58377eb7d"
+  },
+  "provider_plugins": {
+    "kubernetes": {
+      "version": "4.34.2",
+      "linux_arm64_sha256": "1456c1f9624c4cd68caf03928d4c34d6807cbe668fd917c6220ecc09eab70d26",
+      "linux_amd64_sha256": "b2a3471a897d8d4aa5c6f0ea2933d363dfa72bee8ed651a16246a09e3e728bb6"
+    },
+    "aws": {
+      "version": "7.52.1",
+      "linux_arm64_sha256": "1976366b71dc08d8827a04fbb8eaf50a0d1ec5757726e593b6d7c27e7636daf8"
+    }
+  }
+}
