@@ -1,10 +1,28 @@
 # Private Dify document workflows on Amazon EKS with Python Pulumi
 
-For platform engineers running one internal Dify workspace on an **existing EKS
-platform**: scale API, web and indexing workers independently, share files and
-tenant keys through S3, and provide private team HTTPS through Tailscale Ingress.
-Python Pulumi connects AWS storage, database and workload identity to native
-Kubernetes resources in one application stack.
+Build an internal document app: upload a small text file, search its contents,
+and use the result in a Dify workflow. The worked example calculates **21 mapped
+units** and returns the text it found.
+
+This example adds Dify to an **existing Amazon EKS cluster**. EKS is AWS's managed
+Kubernetes service; Kubernetes runs the application's containers. Pulumi creates
+and connects the database, file storage and application using Python.
+
+## Before you begin
+
+This is an application example for a prepared platform, not a guide to creating
+your first Kubernetes cluster. Ask your platform administrator for:
+
+- An EKS cluster in `us-east-2` that meets the [platform checklist](#platform-checklist).
+- Access to deploy into its dedicated Dify namespace and create this app's AWS resources.
+- A Tailscale network, which lets your team reach Dify privately without a public website.
+- An approved isolated deployment environment with Python 3.12, the pinned Pulumi
+  tools and an encrypted state backend. State is Pulumi's record of the resources
+  it manages; keep it outside Git.
+
+Start with [step 1](#1-get-the-example), then configure, deploy and try the document
+workflow. Read the cleanup section before creating paid resources. Advanced
+platform and recovery details are expandable below.
 
 **Deployment smoke test and cleanup passed (2026-11-13).** Broader operational
 validation remains partial, not production-ready. The exact standalone runtime
@@ -49,7 +67,15 @@ Trust workspace editors and reviewed plugins; this is not hostile-code hosting.
 Public HTTPS egress is IP-based, **not an FQDN allowlist**. Persistence and backup
 creation alone do not establish recoverability.
 
-## Prerequisites: an eligible existing platform
+## Platform checklist
+
+<details>
+<summary>For your platform administrator: exact network, storage and access requirements</summary>
+
+A namespace groups this application's Kubernetes resources. RDS is AWS's managed
+PostgreSQL database; S3 stores files. IRSA gives selected application pods AWS
+permissions without storing permanent AWS keys. CIDRs are the IP address ranges
+used by the network rules.
 
 Have the platform owner verify these before configuring the app:
 
@@ -110,20 +136,23 @@ encrypted [Pulumi backend](https://www.pulumi.com/docs/iac/concepts/state-and-ba
 Application image digests and the RDS CA hash are in `pins.json`; they are not
 automatic updates or evidence of safety.
 
-## Get the example
+</details>
+
+## 1. Get the example
 
 ```sh
 git clone https://github.com/pulumi-labs/pulumi-example-stack-aws-dify-eks.git
 cd pulumi-example-stack-aws-dify-eks
 ```
 
-The repository is initially private for review; cloning requires authorized
-organization access until public release. Follow the platform prerequisites above
-before installing dependencies or deploying.
+Run the following steps from the approved deployment environment, in the cloned
+directory. Complete the platform checklist before installing dependencies.
 
-## Configure
+## 2. Configure your deployment
 
-After compatibility/security checks, from this directory:
+A Pulumi **stack** is one named copy of the deployment. These commands create a
+Python environment and a stack named `team`; they do not deploy resources yet.
+Install only the reviewed dependencies in your approved environment:
 
 ```sh
 python3.12 -m venv .venv
@@ -166,7 +195,8 @@ config:
   dify-private-eks-python:platformEvidenceSha256: YOUR_REVIEWED_EVIDENCE_64_LOWERCASE_HEX_HASH
 ```
 
-Required inputs mean:
+Use this table with your platform administrator to fill in the values. Do not
+guess subnet IDs or network ranges. An AWS ARN is a resource's full identifier.
 
 | Inputs | Exact selection or constraint |
 | --- | --- |
@@ -207,7 +237,10 @@ do not use padded base64 or log the value. Other Agent tokens remain independent
 `secretKey` and tenant RSA keys are needed to decrypt saved provider configuration.
 Kubernetes Secret base64 is not encryption: admins/deployers can read these values.
 
-### Database TLS is a compatibility gate
+### Database certificate requirements
+
+<details>
+<summary>Advanced: how the database connection verifies certificates and hostnames</summary>
 
 API and initialization use explicit **verify-full** with the hash-pinned Ohio
 RDS CA. The unmodified plugin image uses this **indivisible native tuple** and
@@ -234,9 +267,13 @@ verification. Go caches roots per process, so trust changes require restarts;
 deleting one PEM does not necessarily remove usable directory roots. CA hash/mount
 checks establish configuration integrity, not a successful TLS negative test.
 
-## Deploy and try a document workflow
+</details>
 
-Only after the checks above, using kubectl authenticated to the selected cluster:
+## 3. Deploy and try a document workflow
+
+`pulumi preview` shows what will change. Review its account, resource list and
+costs before running `pulumi up`, which creates billable resources. `kubectl` is
+the Kubernetes command-line tool; use it with the selected cluster:
 
 ```sh
 pulumi preview
@@ -249,8 +286,10 @@ kubectl -n dify-team rollout status deployment/web --timeout=900s
 pulumi stack output url
 ```
 
-Initialization precedes the native migration Job; normal consumers have migrations
-off. Readiness and listening ports are not proof of useful processing.
+The database setup and migration jobs must finish before the app can start. The
+rollout commands should finish successfully, and the last command prints Dify's
+private URL. Open it from a device allowed by your Tailscale policy. A running
+app is the starting point; the following document workflow checks useful behavior.
 
 1. Open the output URL from an allowed tailnet client. Verify trusted HTTPS,
    complete first-login setup at `/install`, and retain one internal workspace and
@@ -278,7 +317,10 @@ Model/plugin calls may transmit documents externally and incur fees. Use separat
 least-privilege Knowledge/Workflow API keys if automating requests; never use AWS
 provisioning credentials or export tokens/resolved Secrets into logs.
 
-### Independently scale workers
+## Optional: scale indexing workers
+
+Workers process background jobs such as document indexing. This section describes
+an additional experiment; independent scaling was not part of the passed smoke test.
 
 ```sh
 pulumi config set workerReplicas 2
@@ -302,7 +344,10 @@ and bounded metadata/private/management denial, including DNS aliases, redirects
 CONNECT, strict startup and replacement-node transitions. Do not disable normal
 Code/Template/Agent functionality to conceal a boundary failure.
 
-## Maintenance and coherent recovery
+## Advanced: upgrades, backup and recovery
+
+<details>
+<summary>Read before upgrading or attempting a restore; restore remains untested</summary>
 
 **Do not use `pulumi up` as an online schema-upgrade tool.** Disable user ingress,
 stop producers/Beat, drain queues with an observed bounded deadline, then stop
@@ -354,7 +399,9 @@ recovery. Secret rotation also needs maintenance and deliberate consumer restart
 Secret environment changes do not restart pods. Encryption-key replacement is not
 ordinary credential rotation, and subPath file mounts do not hot-reload.
 
-## Costs, troubleshooting and cleanup
+</details>
+
+## 4. Understand costs and clean up
 
 Budget for existing EKS control plane/nodes/egress, RDS compute and 20 GiB storage,
 50 GiB application EBS, snapshots/backups, S3 versions/requests/transfer, Tailscale
@@ -372,7 +419,10 @@ does not stop these charges; stopped RDS restarts automatically after seven days
   inventory, exact proxy rule ordering and grants/DNS/cert/operator state. Never
   weaken verification, open the EKS API, enable Funnel or expose debug5003.
 
-For teardown, first back up, disable ingress, drain queues, stop writers and record
+### Remove this deployment
+
+Deleting a deployment can permanently delete its documents and database. First
+choose what to keep. Then back up, disable ingress, drain queues, stop writers and record
 stack-owned resources. **RDS, bucket and PVC protection intentionally block a
 blanket destroy.** With explicit data-deletion approval, identify exact owned URNs,
 prepare a reviewed change disabling RDS deletion protection and choosing a
@@ -388,7 +438,9 @@ pulumi destroy
 
 S3 `force_destroy` stays false: separately remove all versions/delete markers and
 multipart uploads before deleting the bucket, or deliberately retain it.
-**Retain PVC deletion leaves PV/EBS data and billing.** Platform owner must reconcile
+**Deleting a retained storage claim does not delete its disk or stop disk charges.**
+PVC is the application's storage claim, PV is the allocated Kubernetes volume,
+and EBS is the underlying AWS disk. The platform owner must reconcile
 owned volumes, CSI/EBS snapshots, RDS final/manual/automated snapshots and S3 data,
 plus IAM/SG/subnet-group resources. Delete this Ingress and let the existing operator
 clean its proxy; independently verify tailnet device removal. Never delete the
