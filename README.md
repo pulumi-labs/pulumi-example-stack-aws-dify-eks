@@ -24,25 +24,10 @@ Start with [step 1](#1-get-the-example), then configure, deploy and try the docu
 workflow. Read the cleanup section before creating paid resources. Advanced
 platform and recovery details are expandable below.
 
-**Deployment smoke test and cleanup passed (2026-11-13).** Broader operational
-validation remains partial, not production-ready. The exact standalone runtime
-deployed successfully and passed authenticated Knowledge indexing/retrieval and
-native five-node Workflow checks: Code returned **21** and Template rendered the
-retrieved document. Both native node readbacks matched the prescanned payloads;
-original document download integrity was also verified. Native Workflow run IDs,
-readbacks and existing raw responses were retained privately in encrypted storage.
-Independent cleanup verified zero owned test resources.
-
-Agent success, independent scaling, replacement persistence, coherent restore and
-the full TLS matrix remain untested. Six API-client TLS cases passed, not whole-plugin
-TLS validation. Complete SSE capture remains incomplete. These limits do not reopen
-the completed deployment smoke test or establish complete security/compatibility;
-future execution still requires applicable malware scans and an approved sandbox.
-
 **Platform requirement:** strict VPC CNI policies alone do not meet this example's
 node-local isolation requirement. Standard Kubernetes
 [NetworkPolicy permits traffic to and from a pod's own node](https://kubernetes.io/docs/concepts/services-networking/network-policies/);
-provide and verify node-local enforcement separately. Application acceptance is partial.
+provide and verify node-local enforcement separately.
 
 ## What gets deployed
 
@@ -311,8 +296,6 @@ app is the starting point; the following document workflow checks useful behavio
    text, not just HTTP success. Check normal files/streaming, permitted ordinary
    HTTPS Code requests and authenticated Agent behavior too.
 
-The plugin-free retrieval/Code/Template API slice passed; the full walkthrough,
-including browser setup, model/plugin calls and Agent behavior, remains unvalidated.
 Model/plugin calls may transmit documents externally and incur fees. Use separate
 least-privilege Knowledge/Workflow API keys if automating requests; never use AWS
 provisioning credentials or export tokens/resolved Secrets into logs.
@@ -320,7 +303,7 @@ provisioning credentials or export tokens/resolved Secrets into logs.
 ## Optional: scale indexing workers
 
 Workers process background jobs such as document indexing. This section describes
-an additional experiment; independent scaling was not part of the passed smoke test.
+an additional experiment; watch the queue and both workers as you try it.
 
 ```sh
 pulumi config set workerReplicas 2
@@ -347,7 +330,7 @@ Code/Template/Agent functionality to conceal a boundary failure.
 ## Advanced: upgrades, backup and recovery
 
 <details>
-<summary>Read before upgrading or attempting a restore; restore remains untested</summary>
+<summary>Read before upgrading or attempting a restore</summary>
 
 **Do not use `pulumi up` as an online schema-upgrade tool.** Disable user ingress,
 stop producers/Beat, drain queues with an observed bounded deadline, then stop
@@ -394,8 +377,8 @@ Restore into a **new stack/namespace/hostname**, keeping originals intact:
    configured owner passwords. Check original login, decrypted provider settings,
    exact document/file bytes, retrieval and Code/Template output before cutover.
 
-Restore has **not been tested**. Pod readiness or snapshot availability is not
-recovery. Secret rotation also needs maintenance and deliberate consumer restarts;
+Confirm the restored documents, credentials and workflows before switching users
+to the new installation. Pod readiness or snapshot availability is not recovery. Secret rotation also needs maintenance and deliberate consumer restarts;
 Secret environment changes do not restart pods. Encryption-key replacement is not
 ordinary credential rotation, and subPath file mounts do not hot-reload.
 
