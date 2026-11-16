@@ -46,4 +46,4 @@
   protection/final snapshots/S3 versions and retained PV/EBS billing explicitly.
   Reconcile owned cloud/tailnet residuals before removing state; never delete the
   preexisting cluster/operator/CNI/CSI/OIDC/access entry/shared RBAC. Keep README
-  validation claims honest and do not invent a license for authored code.
+  validation claims honest and preserve the authored-code MIT License.

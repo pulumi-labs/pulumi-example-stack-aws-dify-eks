@@ -408,8 +408,9 @@ support commitment.
 
 ## License and references
 
-The license for the authored Pulumi example is pending owner review before public
-release. No license grant for that code is implied by the upstream notice below.
+This example's authored code is licensed under the [MIT License](LICENSE) and
+is provided as-is, without warranty or a support commitment. Third-party
+components retain their own licenses and notices.
 
 Preserve [DIFY-LICENSE](DIFY-LICENSE), including modified Apache terms for Dify and
 derived nginx/Squid configuration, branding and multi-workspace/multitenant
